@@ -1,0 +1,24 @@
+{
+  "name": "com.mrthee.philflui",
+  "version": "0.0.1",
+  "displayName": "Phil FLUI",
+  "description": "Fancy Animated UI Boilerplate Utils, Tools, and Core code!",
+  "unity": "2019.4",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html",
+  "dependencies": {
+    "com.mrthee.philsrc": "0.0.2"
+  },
+  "keywords": [
+    "MrThee",
+    "FLUI",
+    "UI"
+  ],
+  "author": {
+    "name": "Phillip Woytowitz",
+    "email": "phwoytowitz@gmail.com",
+    "url": "https://twitter.com/PhillipWitz"
+  }
+}
