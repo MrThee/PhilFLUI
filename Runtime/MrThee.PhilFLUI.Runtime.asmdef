@@ -1,7 +1,7 @@
 {
     "name": "com.mrthee.philflui",
     "references": [
-        "NewAssembly"
+        "GUID:ce78521710b9a63449a0a1a51d8f0939"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
