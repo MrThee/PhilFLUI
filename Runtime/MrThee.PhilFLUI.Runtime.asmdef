@@ -1,3 +1,15 @@
-﻿{
-	"name": "com.mrthee.philflui"
+{
+    "name": "com.mrthee.philflui",
+    "references": [
+        "NewAssembly"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
