@@ -9,7 +9,8 @@
   "changelogUrl": "https://example.com/changelog.html",
   "licensesUrl": "https://example.com/licensing.html",
   "dependencies": {
-    "com.mrthee.philsrc": "0.0.2"
+    "com.mrthee.philsrc": "0.0.2",
+    "com.unity.textmeshpro": "2.0.0"
   },
   "keywords": [
     "MrThee",
