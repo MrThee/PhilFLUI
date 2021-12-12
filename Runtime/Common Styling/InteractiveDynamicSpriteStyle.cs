@@ -25,14 +25,18 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
         return data.GetBehaviour(state);
     }
 
-    public void BlendedApplyAll(InteractiveStateMachine ism, RectTransform rectTrans, Image graphic){
-        data.BlendedApplyAll(ism, rectTrans, graphic);
+    public void BlendedApplyAll(InteractiveStateMachine ism, RectTransform rectTrans, SpriteRenderer spriteRenderer){
+        data.BlendedApplyAll(ism, FLUITransformable.Same(rectTrans), FLUIColorable.Sprite(spriteRenderer), FLUISpriteable.Sprite(spriteRenderer) );
     }
 
-    public void BlendedApplyAll(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
-        RectTransform rectTrans, Image graphic)
+    public void BlendedApplyAll(InteractiveStateMachine ism, RectTransform rectTrans, Image graphic){
+        data.BlendedApplyAll(ism, FLUITransformable.Same(rectTrans), FLUIColorable.Image(graphic), FLUISpriteable.Image(graphic) );
+    }
+
+    public void BlendedApplyAll(InteractiveStateMachine ism,
+        FLUITransformable ft, FLUIColorable fc, FLUISpriteable fs)
     {
-        data.BlendedApplyAll(priorStateTimer, priorState, newStateTimer, newState, rectTrans, graphic);
+        data.BlendedApplyAll(ism, ft, fc, fs);
     }
 
     [System.Serializable]
@@ -70,17 +74,22 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
             t = (stateBlendPeriod == 0f) ? 1f : ism.currentStateTimer / stateBlendPeriod;
         }
 
-        public void BlendedApplyAll(InteractiveStateMachine ism, RectTransform rectTrans, Image graphic){
+        public void BlendedApplyAll(InteractiveStateMachine ism,
+            FLUITransformable ft, FLUIColorable fc, FLUISpriteable fs)
+        {
             if(ism.currentState.TryGetValue(out var curIState) == false){
                 return;
             }
             var prevIState = ism.priorState ?? curIState;
-            BlendedApplyAll(ism.priorStateTimer, prevIState, ism.currentStateTimer, curIState, rectTrans, graphic);
+            BlendedApplyAll(ism.priorStateTimer, prevIState, ism.currentStateTimer, curIState, 
+                ft.offsetThis, ft.rotateThis, ft.scaleThis, 
+                fc, FLUIColorable.SetColor, fs, FLUISpriteable.SetSprite
+            );
         }
 
-
-        public void BlendedApplyAll(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
-            RectTransform optRectTrans, Image optGraphic)
+        public void BlendedApplyAll<C,S>(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
+            RectTransform optOffsetable, Transform optRotatable, RectTransform optScalable,
+            C graphic, System.Action<C,Color> SetColor, S spriteable, System.Action<S, Sprite> SetSprite)
         {
             // Graphics
             var aBehaviour = GetBehaviour(priorState);
@@ -91,29 +100,31 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
 
             // Color
             var aColorBehav = aBehaviour.colorBehaviour; var bColorBehav = bBehaviour.colorBehaviour;
-            if(optGraphic){
-                optGraphic.color = Color.Lerp( aColorBehav.Evaluate(a_t), bColorBehav.Evaluate(b_t), t );
-            }
+            SetColor( graphic, Color.Lerp(aColorBehav.Evaluate(a_t), bColorBehav.Evaluate(b_t), t) );
 
             // Rect
             var aRect = aBehaviour.rectBehaviour; var bRect = bBehaviour.rectBehaviour;
-            if(optRectTrans){
-                optRectTrans.anchoredPosition = Vector2.Lerp( aRect.GetPosition(a_t), bRect.GetPosition(b_t), t );
-                optRectTrans.localEulerAngles = Vector3.forward * Mathf.Lerp( aRect.zRot.Evaluate(a_t), bRect.zRot.Evaluate(b_t), t );
+            if(optOffsetable){
+                optOffsetable.anchoredPosition = Vector2.Lerp( aRect.GetPosition(a_t), bRect.GetPosition(b_t), t );
+            }
+            if(optRotatable){
+                optRotatable.localEulerAngles = Vector3.forward * Mathf.Lerp( aRect.zRot.Evaluate(a_t), bRect.zRot.Evaluate(b_t), t );
+            }
+            if(optScalable){
                 Vector2 localScale = Vector2.Lerp( aRect.GetScale(a_t), bRect.GetScale(b_t), t );
                 switch(aRect.scaleMode){
                 case TRS2D.ScaleRectMode.AsScale: {
-                    optRectTrans.localScale = localScale;
+                    optScalable.localScale = localScale;
                 } break;
                 case TRS2D.ScaleRectMode.AsSize: {
-                    optRectTrans.sizeDelta = localScale;
+                    optScalable.sizeDelta = localScale;
                 } break;
                 }
             }
 
             // Sprite (no blend, just use the new state)
-            if(bBehaviour.spriteBehaviour.Count > 0 && optGraphic){
-                optGraphic.sprite = bBehaviour.GetSprite(newStateTimer);
+            if(bBehaviour.spriteBehaviour.Count > 0 ){
+                SetSprite( spriteable, bBehaviour.GetSprite(newStateTimer) );
             }
         }
 

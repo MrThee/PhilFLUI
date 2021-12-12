@@ -153,10 +153,19 @@ namespace Phil.FLUI {
         ) {
             return PerCharOps<Color>.WordSpace<Color>( Phil.TMProUtils.GetColors, Phil.TMProUtils.SetColors, initCharBufCapacity );
         }
+
+        public static PerCharOps<Vector3> Positions( bool local, int initCharBufCapacity, System.Func<Vector3,int,Vector3> CalcGlyphPosition
+        ) {
+            var pco = PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, initCharBufCapacity );
+            pco.CharTransform.Set(CalcGlyphPosition);
+            return pco;
+        }
+        
         public static PerCharOps<Vector3> Positions( bool local, int initCharBufCapacity
         ) {
             return PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, initCharBufCapacity );
         }
+
 
         // NOOPs
         public static Vector3 Vector3_Noop (Vector3 input, int ci){

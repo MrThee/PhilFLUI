@@ -11,10 +11,10 @@ namespace Phil.FLUI {
 public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
     [InlineCorral] public Inline data = new Inline();
 
-    public BehaviourSet rollout => rollout;
-    public BehaviourSet idle => idle;
-    public BehaviourSet recede => recede;
-    public float crossfadePeriod => crossfadePeriod;
+    public BehaviourSet rollout => data.rollout;
+    public BehaviourSet idle => data.idle;
+    public BehaviourSet recede => data.recede;
+    public float crossfadePeriod => data.crossfadePeriod;
 
     public float GetStatePeriod(NonInteractiveState niState){
         return data.GetStatePeriod(niState);
@@ -24,20 +24,16 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
         return GetBehaviourState(state);
     }
 
-    public void ApplyAll(float timer, NonInteractiveState state,
-        RectTransform rectTransform, Image graphic)
-    {
-        data.ApplyAll(timer, state, rectTransform, graphic);
+    public void BlendedApplyAll(NIStateMachine nism, RectTransform rectTrans, Image image){
+        data.BlendedApplyAll(nism, FLUITransformable.Same(rectTrans), FLUIColorable.Image(image), FLUISpriteable.Image(image));
     }
 
-    public void BlendedApplyAll(NIStateMachine state, RectTransform rectTrans, Image graphic){
-        data.BlendedApplyAll(state, rectTrans, graphic);
+    public void BlendedApplyAll(NIStateMachine nism, RectTransform rectTrans, SpriteRenderer spr){
+        data.BlendedApplyAll(nism, FLUITransformable.Same(rectTrans), FLUIColorable.Sprite(spr), FLUISpriteable.Sprite(spr));
     }
-        
-    public void BlendedApplyAll(float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
-    RectTransform rectTrans, Image graphic)
-    {
-        data.BlendedApplyAll(priorStateTimer, priorState, newStateTimer, newState, rectTrans, graphic);
+
+    public void BlendedApplyAll(NIStateMachine nism, FLUITransformable transformThis, FLUIColorable colorThis, FLUISpriteable spriteThis){
+        data.BlendedApplyAll(nism, transformThis, colorThis, spriteThis);
     }
 
     // ================ Data Types ================ //
@@ -51,6 +47,7 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
 
         public Sprite GetSprite(float timer){
             float t = timer / period;
+            t = Mathf.Repeat(t, 1f);
             int frames = spriteBehaviour.Count;
             int frameIndex = Phil.Math.FloorToIndex(t, frames);
             return spriteBehaviour[frameIndex];
@@ -85,21 +82,21 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
             }
         }
 
-        public void ApplyAll(float timer, NonInteractiveState state,
-            RectTransform rectTransform, Image graphic)
-        {
-            var behave = GetBehaviour(state);
-            behave.ApplyAll(timer, rectTransform, graphic);
-        }
-
-        public void BlendedApplyAll(NIStateMachine state, RectTransform rectTrans, Image graphic){
+        public void BlendedApplyAll(NIStateMachine state, FLUITransformable fTrans, FLUIColorable fColorable, FLUISpriteable fSpriteThis){
+            if(state.currentState.HasValue==false){
+                return;
+            }
             var prevState = state.priorState ?? state.currentState.Value;
             var curState = state.currentState.Value;
-            BlendedApplyAll(state.priorStateTimer, prevState, state.currentStateTimer, curState, rectTrans, graphic);
+            BlendedApplyAll<FLUIColorable,FLUISpriteable>(state.priorStateTimer, prevState, state.currentStateTimer, curState, 
+                fTrans.offsetThis, fTrans.rotateThis, fTrans.scaleThis, 
+                fColorable, FLUIColorable.SetColor, fSpriteThis, FLUISpriteable.SetSprite
+            );
         }
-        
-        public void BlendedApplyAll(float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
-        RectTransform rectTrans, Image graphic)
+
+        public void BlendedApplyAll<C,S>(float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
+            RectTransform optLoc, Transform optRot, RectTransform optScale, 
+            C colorable, System.Action<C,Color> SetColor, S spriteable, System.Action<S, Sprite> SetSprite)
         {
             // Graphics
             var aBehaviour = GetBehaviour(priorState);
@@ -110,25 +107,32 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
 
             // Color
             var aColorBehav = aBehaviour.colorBehaviour; var bColorBehav = bBehaviour.colorBehaviour;
-            graphic.color = Color.Lerp( aColorBehav.Evaluate(a_t), bColorBehav.Evaluate(b_t), t );
+            SetColor(colorable, Color.Lerp( aColorBehav.Evaluate(a_t), bColorBehav.Evaluate(b_t), t ));
 
             // Rect
             var aRect = aBehaviour.rectBehaviour; var bRect = bBehaviour.rectBehaviour;
-            rectTrans.anchoredPosition = Vector2.Lerp( aRect.GetPosition(a_t), bRect.GetPosition(b_t), t );
-            rectTrans.localEulerAngles = Vector3.forward * Mathf.Lerp( aRect.zRot.Evaluate(a_t), bRect.zRot.Evaluate(b_t), t );
-            Vector2 localScale = Vector2.Lerp( aRect.GetScale(a_t), bRect.GetScale(b_t), t );
-            switch(aRect.scaleMode){
-            case TRS2D.ScaleRectMode.AsScale: {
-                rectTrans.localScale = localScale;
-            } break;
-            case TRS2D.ScaleRectMode.AsSize: {
-                rectTrans.sizeDelta = localScale;
-            } break;
+            if(optLoc){
+                optLoc.anchoredPosition = Vector2.Lerp( aRect.GetPosition(a_t), bRect.GetPosition(b_t), t );
+            }
+            if(optRot){
+                optRot.localEulerAngles = Vector3.forward * Mathf.Lerp( aRect.zRot.Evaluate(a_t), bRect.zRot.Evaluate(b_t), t );
+            }
+            if(optScale){
+                Vector2 localScale = Vector2.Lerp( aRect.GetScale(a_t), bRect.GetScale(b_t), t );
+                switch(aRect.scaleMode){
+                case TRS2D.ScaleRectMode.AsScale: {
+                    optScale.localScale = localScale;
+                } break;
+                case TRS2D.ScaleRectMode.AsSize: {
+                    optScale.sizeDelta = localScale;
+                } break;
+                }
             }
 
             // Sprite (no blend, just use the new state)
             if(bBehaviour.spriteBehaviour.Count > 0){
-                graphic.sprite = bBehaviour.GetSprite(newStateTimer);
+                var sprite = bBehaviour.GetSprite(newStateTimer);
+                SetSprite(spriteable, sprite);
             }
         }
     }
