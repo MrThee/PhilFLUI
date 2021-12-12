@@ -14,6 +14,9 @@ namespace Phil.FLUI {
         public ISMText text;
         public ISMSprite background;
         public ISMSprite foreground;
+        public FLUIEventContainer eventContainer = new FLUIEventContainer();
+
+        [Header("Config")]
         public DynamicButtonStyle defaultStyle;
         public IDynamicButtonStyle parentOverrideStyle { 
             get => m_overrideStorage;

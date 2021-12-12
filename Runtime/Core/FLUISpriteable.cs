@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Phil;
+using Phil.Core;
 
 namespace Phil.FLUI {
 
 [System.Serializable]
-public struct FLUISpriteable {
+public class FLUISpriteable : PolyObject<FLUISpriteable.Type, UnityEngine.UI.Image, SpriteRenderer> {
     public enum Type {
         UIImage,
         SpriteRenderer,
     }
     public Type type;
-    public UnityEngine.UI.Image image;
-    public SpriteRenderer spriteRenderer;
+    public UnityEngine.UI.Image image { get => componentA; set => componentA = value; }
+    public SpriteRenderer spriteRenderer { get => componentB; set => componentB = value; }
 
     public static FLUISpriteable Image(UnityEngine.UI.Image img){
-        FLUISpriteable fc;
+        var fc = new FLUISpriteable();
         fc.type = Type.UIImage;
         fc.image = img;
         fc.spriteRenderer = null;
@@ -25,7 +26,7 @@ public struct FLUISpriteable {
     }
 
     public static FLUISpriteable Sprite(SpriteRenderer sr){
-        FLUISpriteable fc;
+        var fc = new FLUISpriteable();
         fc.type = Type.SpriteRenderer;
         fc.image = null;
         fc.spriteRenderer = sr;

@@ -7,17 +7,24 @@ using Phil;
 namespace Phil.FLUI {
 
 [System.Serializable]
-public struct FLUIColorable {
+public class FLUIColorable : Phil.Core.PolyObject<FLUIColorable.Type, UnityEngine.UI.Image, SpriteRenderer> {
     public enum Type {
         UIImage,
         SpriteRenderer,
     }
-    public Type type;
-    public UnityEngine.UI.Image image;
-    public SpriteRenderer spriteRenderer;
+
+    public UnityEngine.UI.Image image {
+        get => componentA;
+        set => componentA = value;
+    }
+
+    public SpriteRenderer spriteRenderer {
+        get => componentB;
+        set => componentB = value;
+    }
 
     public static FLUIColorable Image(UnityEngine.UI.Image img){
-        FLUIColorable fc;
+        var fc = new FLUIColorable();
         fc.type = Type.UIImage;
         fc.image = img;
         fc.spriteRenderer = null;
@@ -25,7 +32,7 @@ public struct FLUIColorable {
     }
 
     public static FLUIColorable Sprite(SpriteRenderer sr){
-        FLUIColorable fc;
+        var fc = new FLUIColorable();
         fc.type = Type.SpriteRenderer;
         fc.image = null;
         fc.spriteRenderer = sr;
