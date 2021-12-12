@@ -10,7 +10,7 @@ namespace Phil.FLUI {
 public struct InteractiveStateMachine {
 
     public interface IChangeStateCallback {
-        void DidChangeState(InteractiveStateMachine ism);
+        void DidChangeState(ref InteractiveStateMachine ism);
     }
 
     public float priorStateTimer;
@@ -44,7 +44,7 @@ public struct InteractiveStateMachine {
 
     public InteractiveState? ChangeState(InteractiveState? newState, IChangeStateCallback callbackUser){
         this.ChangeState(newState);
-        callbackUser?.DidChangeState(this);
+        callbackUser?.DidChangeState(ref this);
         return this.currentState;
     }
 

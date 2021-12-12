@@ -11,7 +11,7 @@ namespace Phil.FLUI {
 public struct NIStateMachine {
 
     public interface IChangeStateCallback {
-        void DidChangeState(NIStateMachine nism);
+        void DidChangeState(ref NIStateMachine nism);
     }
 
     public float priorStateTimer;
@@ -43,7 +43,7 @@ public struct NIStateMachine {
 
     public NonInteractiveState? ChangeState(NonInteractiveState? newState, IChangeStateCallback callbackUser){
         this.ChangeState(newState);
-        callbackUser?.DidChangeState(this);
+        callbackUser?.DidChangeState(ref this);
         return newState;
     }
 

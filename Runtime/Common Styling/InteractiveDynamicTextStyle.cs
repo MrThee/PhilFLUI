@@ -7,7 +7,7 @@ using Phil.Attributes;
 namespace Phil.FLUI {
 
 [CreateAssetMenu(menuName = "UI Styles/Dynamic Text/Interactive", order = 1, fileName = "Interactive Dynamic Text Style")]
-public class InteractiveDynamicTextStyle : ScriptableObject {
+public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveStatePeriod {
 
     [InlineCorral] public Inline data = new Inline();
 
@@ -18,6 +18,10 @@ public class InteractiveDynamicTextStyle : ScriptableObject {
     public DynamicTextStyle.CharBehaviour confirmed => data.confirmed;
     public float crossfadePeriod => data.crossfadePeriod;
 
+    public float GetStatePeriod(InteractiveState iState){
+        return data.GetCharBehaviour(iState)?.charPeriod ?? 0f;
+    }
+
     public DynamicTextStyle.CharBehaviour GetCharBehaviour(InteractiveState state){
         return data.GetCharBehaviour(state);
     }
@@ -26,6 +30,12 @@ public class InteractiveDynamicTextStyle : ScriptableObject {
             Vector3 quadPoint, int charIndex
     ) {
         return data.CalcBlendedTransformLocalPoint(priorStateTimer, priorState, newStateTimer, newState, quadPoint, charIndex);
+    }
+
+    public Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism,
+            Vector3 quadPoint, int charIndex
+    ) {
+        return data.CalcBlendedTransformLocalPoint(ism, quadPoint, charIndex);
     }
 
     public Color CalcWordBlendedColor(InteractiveStateMachine iTextStateMachine){
@@ -73,6 +83,9 @@ public class InteractiveDynamicTextStyle : ScriptableObject {
         }
         
         public Color CalcWordBlendedColor(InteractiveStateMachine iTextStateMachine){
+            if(iTextStateMachine.currentState.HasValue==false){
+                return Color.white;
+            }
             var curState = iTextStateMachine.currentState.Value;
             var priorState = iTextStateMachine.priorState ?? curState;
             float t = (crossfadePeriod == 0f) ? 1f : iTextStateMachine.currentStateTimer / crossfadePeriod;

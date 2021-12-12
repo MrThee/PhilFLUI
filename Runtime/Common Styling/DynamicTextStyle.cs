@@ -78,6 +78,9 @@ public class DynamicTextStyle : ScriptableObject, INIStatePeriod {
         }
 
         public Color CalcWordBlendedColor(NIStateMachine dTextState){
+            if(dTextState.currentState.HasValue == false){
+                return Color.white;
+            }
             var priorState = dTextState.priorState ?? dTextState.currentState.Value;
             var curState = dTextState.currentState.Value;
             float t = (crossfadePeriod == 0f) ? 1f : dTextState.currentStateTimer / crossfadePeriod;
@@ -90,6 +93,9 @@ public class DynamicTextStyle : ScriptableObject, INIStatePeriod {
         }
 
         public Vector3 CalcBlendedTransformLocalPoint(NIStateMachine dTextState, Vector3 quadPoint, int charIndex){
+            if(dTextState.currentState.HasValue==false){
+                return Vector3.zero;
+            }
             var oldState = dTextState.priorState ?? dTextState.currentState.Value;
             return CalcBlendedTransformLocalPoint(
                 dTextState.priorStateTimer, oldState, dTextState.currentStateTimer, dTextState.currentState.Value,

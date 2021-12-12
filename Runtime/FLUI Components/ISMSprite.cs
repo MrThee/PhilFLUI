@@ -6,7 +6,7 @@ using Phil;
 
 namespace Phil.FLUI {
 
-public class NISMBody : MonoBehaviour, NIStateMachine.IChangeStateCallback {
+public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCallback {
 
     [Header("Components")]
     public RectTransform localTransformable;
@@ -14,25 +14,25 @@ public class NISMBody : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     public FLUIColorable colorable;
 
     [Header("Default Config")]
-    public DynamicSpriteStyle style;
+    public InteractiveDynamicSpriteStyle style;
 
-    private NIStateMachine m_nism;
+    private InteractiveStateMachine m_ism;
 
-    public void Init(NonInteractiveState? optInitialState){
+    public void Init(InteractiveState? optInitialState){
         ChangeState(optInitialState);
     }
 
-    public void ChangeState(NonInteractiveState? optNIState){
-        m_nism.ChangeState(optNIState, this);
+    public void ChangeState(InteractiveState? optNIState){
+        m_ism.ChangeState(optNIState, this);
     }
 
-    public void DidChangeState(NIStateMachine nism){
-        this.gameObject.SetActive(nism.currentState.HasValue);
+    public void DidChangeState(ref InteractiveStateMachine ism){
+        this.gameObject.SetActive(ism.currentState.HasValue);
         Reapply();
     }
 
     void FixedUpdate(){
-        m_nism.UpdateState(Time.fixedDeltaTime, style, this);
+        m_ism.UpdateState(Time.fixedDeltaTime, style, this);
     }
 
     void Reapply(){
@@ -46,7 +46,7 @@ public class NISMBody : MonoBehaviour, NIStateMachine.IChangeStateCallback {
             spriteable = FLUISpriteable.Image(this.colorable.image);
         } break;
         }
-        style.BlendedApplyAll( m_nism, 
+        style.BlendedApplyAll( m_ism, 
             FLUITransformable.Same(localTransformable),
             this.colorable,  spriteable
         );
