@@ -16,6 +16,7 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
     [Header("Default Config")]
     public InteractiveDynamicSpriteStyle style;
 
+    public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;
 
     public void Init(InteractiveState? optInitialState){

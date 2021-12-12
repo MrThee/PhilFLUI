@@ -15,6 +15,7 @@ public class NISMSprite : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     [Header("Default Config")]
     public DynamicSpriteStyle style;
 
+    public NonInteractiveState? currentState => m_nism.currentState;
     private NIStateMachine m_nism;
 
     public void Init(NonInteractiveState? optInitialState){

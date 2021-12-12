@@ -14,6 +14,7 @@ public class ISMText : MonoBehaviour, InteractiveStateMachine.IChangeStateCallba
     [Header("Default Config")]
     public InteractiveDynamicTextStyle style;
 
+    public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;
     private PerCharOps<Vector3> m_pco;
     private System.Text.StringBuilder m_strbuf;

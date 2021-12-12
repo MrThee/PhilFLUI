@@ -14,6 +14,7 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     [Header("Default Config")]
     public DynamicTextStyle style;
 
+    public NonInteractiveState? currentState => m_nism.currentState;
     private NIStateMachine m_nism;
     private PerCharOps<Vector3> m_pco;
     private System.Text.StringBuilder m_strbuf;
