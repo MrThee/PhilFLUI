@@ -14,7 +14,9 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
     public FLUIColorable colorable;
 
     [Header("Default Config")]
-    public InteractiveDynamicSpriteStyle style;
+    public InteractiveDynamicSpriteStyle defaultStyle;
+    public IInteractiveDynamicSpriteStyle overrideStyle;
+    public IInteractiveDynamicSpriteStyle style => overrideStyle ?? defaultStyle;
 
     public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;

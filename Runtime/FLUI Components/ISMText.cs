@@ -12,7 +12,9 @@ public class ISMText : MonoBehaviour, InteractiveStateMachine.IChangeStateCallba
     public TMPro.TextMeshProUGUI textField;
 
     [Header("Default Config")]
-    public InteractiveDynamicTextStyle style;
+    public InteractiveDynamicTextStyle defaultStyle;
+    public IInteractiveDynamicCharStyle overrideStyle;
+    public IInteractiveDynamicCharStyle style => overrideStyle ?? style;
 
     public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;

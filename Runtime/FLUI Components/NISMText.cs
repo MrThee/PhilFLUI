@@ -12,7 +12,9 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     public TMPro.TextMeshProUGUI textField;
 
     [Header("Default Config")]
-    public DynamicTextStyle style;
+    public DynamicTextStyle defaultStyle;
+    public IDynamicCharStyle overrideStyle;
+    public IDynamicCharStyle style => overrideStyle ?? defaultStyle;
 
     public NonInteractiveState? currentState => m_nism.currentState;
     private NIStateMachine m_nism;
@@ -32,7 +34,6 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
         Canvas.willRenderCanvases -= this.TextUpdate;
     }
 
-    // TODO: implement this
     Vector3 CalcGlyphPosition(Vector3 quadPoint, int gi){
         return style.CalcBlendedTransformLocalPoint(m_nism, quadPoint, gi);
     }

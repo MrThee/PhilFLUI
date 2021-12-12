@@ -8,22 +8,24 @@ using Phil.Attributes;
 namespace Phil.FLUI {
 
 [CreateAssetMenu(menuName = "UI Styles/Dynamic Sprite/Non Interactive", order = 0, fileName = "Dynamic Sprite Style")]
-public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
+public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod, IDynamicSpriteStyle {
     [InlineCorral] public Inline data = new Inline();
 
-    public BehaviourSet rollout => data.rollout;
-    public BehaviourSet idle => data.idle;
-    public BehaviourSet recede => data.recede;
+    public FLUISpriteBehaviour rollout => data.rollout;
+    public FLUISpriteBehaviour idle => data.idle;
+    public FLUISpriteBehaviour recede => data.recede;
     public float crossfadePeriod => data.crossfadePeriod;
 
     public float GetStatePeriod(NonInteractiveState niState){
         return data.GetStatePeriod(niState);
     }
 
-    public BehaviourSet GetBehaviourState(NonInteractiveState state){
-        return GetBehaviourState(state);
-    }
+    public float GetCrossfadePeriod(){ return data.crossfadePeriod; }
 
+    public FLUISpriteBehaviour GetBehaviour(NonInteractiveState state){
+        return data.GetBehaviour(state);
+    }
+    
     public void BlendedApplyAll(NIStateMachine nism, RectTransform rectTrans, Image image){
         data.BlendedApplyAll(nism, FLUITransformable.Same(rectTrans), FLUIColorable.Image(image), FLUISpriteable.Image(image));
     }
@@ -36,44 +38,20 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
         data.BlendedApplyAll(nism, transformThis, colorThis, spriteThis);
     }
 
-    // ================ Data Types ================ //
-
     [System.Serializable]
-    public class BehaviourSet {
-        public float period = 1f;
-        public Gradient colorBehaviour = new Gradient();
-        public TRS2D rectBehaviour = new TRS2D();
-        public List<Sprite> spriteBehaviour = new List<Sprite>();
-
-        public Sprite GetSprite(float timer){
-            float t = timer / period;
-            t = Mathf.Repeat(t, 1f);
-            int frames = spriteBehaviour.Count;
-            int frameIndex = Phil.Math.FloorToIndex(t, frames);
-            return spriteBehaviour[frameIndex];
-        }
-
-        public void ApplyAll(float timer, RectTransform rectTrans, Image graphic){
-            graphic.color = colorBehaviour.Evaluate(timer);
-            rectBehaviour.TransformRect(timer/period, rectTrans);
-            if(spriteBehaviour.Count > 0) {
-                graphic.sprite = GetSprite(timer);
-            }
-        }
-    }
-
-    [System.Serializable]
-    public class Inline : INIStatePeriod {
-        [InlineCorral] public BehaviourSet rollout = new BehaviourSet();
-        [InlineCorral] public BehaviourSet idle = new BehaviourSet();
-        [InlineCorral] public BehaviourSet recede = new BehaviourSet();
+    public class Inline : INIStatePeriod, IDynamicSpriteStyle {
+        [InlineCorral] public FLUISpriteBehaviour rollout = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour idle = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour recede = new FLUISpriteBehaviour();
         public float crossfadePeriod = 0.3f;
 
         public float GetStatePeriod(NonInteractiveState niState){
             return GetBehaviour(niState).period;
         }
 
-        public BehaviourSet GetBehaviour(NonInteractiveState state){
+        public float GetCrossfadePeriod(){ return crossfadePeriod; }
+
+        public FLUISpriteBehaviour GetBehaviour(NonInteractiveState state){
             switch(state){
                 case NonInteractiveState.Rollout: return rollout;
                 case NonInteractiveState.Idle: return idle;
@@ -88,19 +66,20 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod {
             }
             var prevState = state.priorState ?? state.currentState.Value;
             var curState = state.currentState.Value;
-            BlendedApplyAll<FLUIColorable,FLUISpriteable>(state.priorStateTimer, prevState, state.currentStateTimer, curState, 
+            BlendedApplyAll<FLUIColorable,FLUISpriteable>(this, state.priorStateTimer, prevState, state.currentStateTimer, curState, 
                 fTrans.offsetThis, fTrans.rotateThis, fTrans.scaleThis, 
                 fColorable, FLUIColorable.SetColor, fSpriteThis, FLUISpriteable.SetSprite
             );
         }
 
-        public void BlendedApplyAll<C,S>(float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
+        public static void BlendedApplyAll<C,S>(IDynamicSpriteStyle style, float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
             RectTransform optLoc, Transform optRot, RectTransform optScale, 
             C colorable, System.Action<C,Color> SetColor, S spriteable, System.Action<S, Sprite> SetSprite)
         {
             // Graphics
-            var aBehaviour = GetBehaviour(priorState);
-            var bBehaviour = GetBehaviour(newState);
+            var aBehaviour = style.GetBehaviour(priorState);
+            var bBehaviour = style.GetBehaviour(newState);
+            float crossfadePeriod = style.GetCrossfadePeriod();
             var aPeriod = aBehaviour.period; var bPeriod = bBehaviour.period;
             float a_t = priorStateTimer / aPeriod; float b_t = newStateTimer / bPeriod;
             float t = (crossfadePeriod == 0f) ? 1f : newStateTimer / crossfadePeriod;

@@ -7,29 +7,23 @@ using Phil.Attributes;
 namespace Phil.FLUI {
 
 [CreateAssetMenu(menuName = "UI Styles/Dynamic Text/Interactive", order = 1, fileName = "Interactive Dynamic Text Style")]
-public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveStatePeriod {
+public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveDynamicCharStyle {
 
     [InlineCorral] public Inline data = new Inline();
 
-    public DynamicTextStyle.CharBehaviour rollout => data.rollout;
-    public DynamicTextStyle.CharBehaviour idle => data.idle;
-    public DynamicTextStyle.CharBehaviour recede => data.recede;
-    public DynamicTextStyle.CharBehaviour highlighted => data.highlighted;
-    public DynamicTextStyle.CharBehaviour confirmed => data.confirmed;
-    public float crossfadePeriod => data.crossfadePeriod;
+    public FLUICharBehaviour rollout => data.rollout;
+    public FLUICharBehaviour idle => data.idle;
+    public FLUICharBehaviour recede => data.recede;
+    public FLUICharBehaviour highlighted => data.highlighted;
+    public FLUICharBehaviour confirmed => data.confirmed;
+    public float GetCrossfadePeriod() { return data.GetCrossfadePeriod(); }
 
     public float GetStatePeriod(InteractiveState iState){
-        return data.GetCharBehaviour(iState)?.charPeriod ?? 0f;
+        return data.GetBehaviour(iState)?.charPeriod ?? 0f;
     }
 
-    public DynamicTextStyle.CharBehaviour GetCharBehaviour(InteractiveState state){
-        return data.GetCharBehaviour(state);
-    }
-
-    public Vector3 CalcBlendedTransformLocalPoint(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
-            Vector3 quadPoint, int charIndex
-    ) {
-        return data.CalcBlendedTransformLocalPoint(priorStateTimer, priorState, newStateTimer, newState, quadPoint, charIndex);
+    public FLUICharBehaviour GetBehaviour(InteractiveState state){
+        return data.GetBehaviour(state);
     }
 
     public Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism,
@@ -39,19 +33,39 @@ public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveStatePe
     }
 
     public Color CalcWordBlendedColor(InteractiveStateMachine iTextStateMachine){
-        return data.CalcWordBlendedColor(iTextStateMachine);
+        return CalcWordBlendedColor(this,    iTextStateMachine);
+    }
+        
+    public static Color CalcWordBlendedColor(IInteractiveDynamicCharStyle style, InteractiveStateMachine iTextStateMachine){
+        if(iTextStateMachine.currentState.HasValue==false){
+            return Color.white;
+        }
+        var curState = iTextStateMachine.currentState.Value;
+        var priorState = iTextStateMachine.priorState ?? curState;
+        float crossfadePeriod = style.GetCrossfadePeriod();
+        float t = (crossfadePeriod == 0f) ? 1f : iTextStateMachine.currentStateTimer / crossfadePeriod;
+        var aBehave = style.GetBehaviour(priorState);
+        var bBehave = style.GetBehaviour(curState);
+        Color aColor = aBehave.wordGradient.Evaluate(iTextStateMachine.priorStateTimer/aBehave.wordColorPeriod);
+        Color bColor = bBehave.wordGradient.Evaluate(iTextStateMachine.currentStateTimer/bBehave.wordColorPeriod);
+        Color c = Color.Lerp(aColor, bColor, t);
+        return c;
     }
 
     [System.Serializable]
-    public class Inline {
-        public DynamicTextStyle.CharBehaviour rollout = new DynamicTextStyle.CharBehaviour();
-        public DynamicTextStyle.CharBehaviour idle = new DynamicTextStyle.CharBehaviour();
-        public DynamicTextStyle.CharBehaviour recede = new DynamicTextStyle.CharBehaviour();
-        public DynamicTextStyle.CharBehaviour highlighted = new DynamicTextStyle.CharBehaviour();
-        public DynamicTextStyle.CharBehaviour confirmed = new DynamicTextStyle.CharBehaviour();
+    public class Inline : IInteractiveDynamicCharStyle {
+        public FLUICharBehaviour rollout = new FLUICharBehaviour();
+        public FLUICharBehaviour idle = new FLUICharBehaviour();
+        public FLUICharBehaviour recede = new FLUICharBehaviour();
+        public FLUICharBehaviour highlighted = new FLUICharBehaviour();
+        public FLUICharBehaviour confirmed = new FLUICharBehaviour();
         public float crossfadePeriod = 0.3f;
 
-        public DynamicTextStyle.CharBehaviour GetCharBehaviour(InteractiveState state){
+        public float GetCrossfadePeriod() { return crossfadePeriod; }
+
+        public float GetStatePeriod(InteractiveState istate){ return GetBehaviour(istate).charPeriod; }
+
+        public FLUICharBehaviour GetBehaviour(InteractiveState state){
             switch(state){
                 case InteractiveState.Rollout: return rollout;
                 case InteractiveState.Idle: return idle;
@@ -68,33 +82,22 @@ public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveStatePe
             }
             var curState = ism.currentState.Value;
             var priorState = ism.priorState ?? curState;
-            return CalcBlendedTransformLocalPoint(ism.priorStateTimer, priorState, ism.currentStateTimer, curState, quadPoint, charIndex);
+            return CalcBlendedTransformLocalPoint(this, ism.priorStateTimer, priorState, ism.currentStateTimer, curState, quadPoint, charIndex);
         }
 
-        public Vector3 CalcBlendedTransformLocalPoint(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
+        public static Vector3 CalcBlendedTransformLocalPoint(IInteractiveDynamicCharStyle style, float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
             Vector3 quadPoint, int charIndex
         ) {
-            var aState = GetCharBehaviour(priorState);
-            var bState = GetCharBehaviour(newState);
-            float t = (crossfadePeriod == 0f) ? 1f : newStateTimer / crossfadePeriod;
+            var aState = style.GetBehaviour(priorState);
+            var bState = style.GetBehaviour(newState);
+            float t = (style.GetCrossfadePeriod() == 0f) ? 1f : newStateTimer / style.GetCrossfadePeriod();
             Vector3 aPoint = aState.TransformLocalPoint(quadPoint, charIndex, priorStateTimer);
             Vector3 bPoint = bState.TransformLocalPoint(quadPoint, charIndex, newStateTimer);
             return Vector3.Lerp(aPoint, bPoint, t);
         }
-        
-        public Color CalcWordBlendedColor(InteractiveStateMachine iTextStateMachine){
-            if(iTextStateMachine.currentState.HasValue==false){
-                return Color.white;
-            }
-            var curState = iTextStateMachine.currentState.Value;
-            var priorState = iTextStateMachine.priorState ?? curState;
-            float t = (crossfadePeriod == 0f) ? 1f : iTextStateMachine.currentStateTimer / crossfadePeriod;
-            var aBehave = GetCharBehaviour(priorState);
-            var bBehave = GetCharBehaviour(curState);
-            Color aColor = aBehave.wordGradient.Evaluate(iTextStateMachine.priorStateTimer/aBehave.wordColorPeriod);
-            Color bColor = bBehave.wordGradient.Evaluate(iTextStateMachine.currentStateTimer/bBehave.wordColorPeriod);
-            Color c = Color.Lerp(aColor, bColor, t);
-            return c;
+
+        public Color CalcWordBlendedColor(InteractiveStateMachine ism){
+            return InteractiveDynamicTextStyle.CalcWordBlendedColor(this, ism);
         }
     }
 }

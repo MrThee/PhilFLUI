@@ -8,20 +8,22 @@ using Phil.Attributes;
 namespace Phil.FLUI {
 
 [CreateAssetMenu(menuName = "UI Styles/Dynamic Sprite/Interactive", order = 1, fileName = "Interactive Dynamic Sprite Style")]
-public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveStatePeriod {
+public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveStatePeriod, IInteractiveDynamicSpriteStyle {
     [InlineCorral] public Inline data = new Inline();
-    public DynamicSpriteStyle.BehaviourSet rollout => data.rollout;
-    public DynamicSpriteStyle.BehaviourSet idle => data.idle;
-    public DynamicSpriteStyle.BehaviourSet recede => data.recede;
-    public DynamicSpriteStyle.BehaviourSet highlighted => data.highlighted;
-    public DynamicSpriteStyle.BehaviourSet confirmed => data.confirmed;
+    public FLUISpriteBehaviour rollout => data.rollout;
+    public FLUISpriteBehaviour idle => data.idle;
+    public FLUISpriteBehaviour recede => data.recede;
+    public FLUISpriteBehaviour highlighted => data.highlighted;
+    public FLUISpriteBehaviour confirmed => data.confirmed;
     public float stateBlendPeriod => data.stateBlendPeriod;
 
     public float GetStatePeriod(InteractiveState state){
         return data.GetStatePeriod(state);
     }
 
-    public DynamicSpriteStyle.BehaviourSet GetBehaviour(InteractiveState state){
+    public float GetCrossfadePeriod(){ return data.stateBlendPeriod; }
+
+    public FLUISpriteBehaviour GetBehaviour(InteractiveState state){
         return data.GetBehaviour(state);
     }
 
@@ -40,19 +42,21 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
     }
 
     [System.Serializable]
-    public class Inline : IInteractiveStatePeriod {
-        [InlineCorral] public DynamicSpriteStyle.BehaviourSet rollout = new DynamicSpriteStyle.BehaviourSet();
-        [InlineCorral] public DynamicSpriteStyle.BehaviourSet idle = new DynamicSpriteStyle.BehaviourSet();
-        [InlineCorral] public DynamicSpriteStyle.BehaviourSet recede = new DynamicSpriteStyle.BehaviourSet();
-        [InlineCorral] public DynamicSpriteStyle.BehaviourSet highlighted = new DynamicSpriteStyle.BehaviourSet();
-        [InlineCorral] public DynamicSpriteStyle.BehaviourSet confirmed = new DynamicSpriteStyle.BehaviourSet();
+    public class Inline : IInteractiveStatePeriod, IInteractiveDynamicSpriteStyle {
+        [InlineCorral] public FLUISpriteBehaviour rollout = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour idle = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour recede = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour highlighted = new FLUISpriteBehaviour();
+        [InlineCorral] public FLUISpriteBehaviour confirmed = new FLUISpriteBehaviour();
         public float stateBlendPeriod = 0.3f;
 
         public float GetStatePeriod(InteractiveState state){
             return GetBehaviour(state).period;
         }
 
-        public DynamicSpriteStyle.BehaviourSet GetBehaviour(InteractiveState state){
+        public float GetCrossfadePeriod(){ return stateBlendPeriod; }
+
+        public FLUISpriteBehaviour GetBehaviour(InteractiveState state){
             switch(state){
                 case InteractiveState.Rollout: return rollout;
                 case InteractiveState.Idle: return idle;
@@ -64,7 +68,7 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
         }
 
         public void GetBlendedBehaviours(ref InteractiveStateMachine ism, 
-            out DynamicSpriteStyle.BehaviourSet behaviourA, out DynamicSpriteStyle.BehaviourSet behaviourB, 
+            out FLUISpriteBehaviour behaviourA, out FLUISpriteBehaviour behaviourB, 
             out float a_t, out float b_t, out float t)
         {
             behaviourA = GetBehaviour(ism.priorState.Value);
@@ -74,6 +78,10 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
             t = (stateBlendPeriod == 0f) ? 1f : ism.currentStateTimer / stateBlendPeriod;
         }
 
+        public void BlendedApplyAll(InteractiveStateMachine ism, RectTransform rectTrans, Image graphic){
+            BlendedApplyAll(ism, FLUITransformable.Same(rectTrans), FLUIColorable.Image(graphic), FLUISpriteable.Image(graphic) );
+        }
+
         public void BlendedApplyAll(InteractiveStateMachine ism,
             FLUITransformable ft, FLUIColorable fc, FLUISpriteable fs)
         {
@@ -81,21 +89,23 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
                 return;
             }
             var prevIState = ism.priorState ?? curIState;
-            BlendedApplyAll(ism.priorStateTimer, prevIState, ism.currentStateTimer, curIState, 
+            BlendedApplyAll(this, ism.priorStateTimer, prevIState, ism.currentStateTimer, curIState, 
                 ft.offsetThis, ft.rotateThis, ft.scaleThis, 
                 fc, FLUIColorable.SetColor, fs, FLUISpriteable.SetSprite
             );
         }
 
-        public void BlendedApplyAll<C,S>(float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
+        public static void BlendedApplyAll<C,S>( IInteractiveDynamicSpriteStyle style,
+            float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
             RectTransform optOffsetable, Transform optRotatable, RectTransform optScalable,
             C graphic, System.Action<C,Color> SetColor, S spriteable, System.Action<S, Sprite> SetSprite)
         {
             // Graphics
-            var aBehaviour = GetBehaviour(priorState);
-            var bBehaviour = GetBehaviour(newState);
+            var aBehaviour = style.GetBehaviour(priorState);
+            var bBehaviour = style.GetBehaviour(newState);
             var aPeriod = aBehaviour.period; var bPeriod = bBehaviour.period;
             float a_t = priorStateTimer / aPeriod; float b_t = newStateTimer / bPeriod;
+            float stateBlendPeriod = style.GetCrossfadePeriod();
             float t = (stateBlendPeriod == 0f) ? 1f : newStateTimer / stateBlendPeriod;
 
             // Color
@@ -128,6 +138,7 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
             }
         }
 
+        // some other methods i dont really use anymore, but could potentially be useful...?
         public void BlendedValueRetrieve(InteractiveStateMachine ism,
             out Vector3 position, out Vector3 angles, out Vector3 scale, out Color color, out Sprite sprite )
         { 
