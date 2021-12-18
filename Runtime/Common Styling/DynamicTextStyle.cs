@@ -38,12 +38,16 @@ public class DynamicTextStyle : ScriptableObject, IDynamicCharStyle {
         return Inline.CalcBlendedTransformLocalPoint(this, priorStateTimer, priorState, newStateTimer, newState, quadPoint, charIndex);
     }
 
+    void OnValidate(){
+        idle.TRS.EnsureWraps();
+    }
+
     [System.Serializable]
     public class Inline : IDynamicCharStyle {
+        public float crossfadePeriod = 0.2f;
         [InlineCorral] public FLUICharBehaviour rollout = new FLUICharBehaviour();
         [InlineCorral] public FLUICharBehaviour idle = new FLUICharBehaviour();
         [InlineCorral] public FLUICharBehaviour recede = new FLUICharBehaviour();
-        public float crossfadePeriod = 0.2f;
 
         public float GetCrossfadePeriod(){ return crossfadePeriod; }
 

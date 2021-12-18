@@ -33,6 +33,7 @@ public class NISMSprite : MonoBehaviour, NIStateMachine.IChangeStateCallback {
 
     void FixedUpdate(){
         m_nism.UpdateState(Time.fixedDeltaTime, style, this);
+        Reapply();
     }
 
     void Reapply(){

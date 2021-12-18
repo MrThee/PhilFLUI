@@ -13,7 +13,6 @@ public class FLUISpriteable : PolyObject<FLUISpriteable.Type, UnityEngine.UI.Ima
         UIImage,
         SpriteRenderer,
     }
-    public Type type;
     public UnityEngine.UI.Image image { get => componentA; set => componentA = value; }
     public SpriteRenderer spriteRenderer { get => componentB; set => componentB = value; }
 

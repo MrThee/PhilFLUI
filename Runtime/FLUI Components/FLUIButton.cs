@@ -37,13 +37,13 @@ namespace Phil.FLUI {
 
         private IDynamicButtonStyle m_overrideStorage;
 
-        public void Init(InteractiveState? optInitialState, int stringBufferCapacity){
+        public void Init(InteractiveState? optInitialState, InteractiveState? optPostConfirmState, int stringBufferCapacity){
+            this.parentOverrideStyle = null; // actually an initial hydration
             // Where the interfaces REALLY come in handy!
-            text?.Init(optInitialState, stringBufferCapacity);
-            background?.Init(optInitialState);
-            foreground?.Init(optInitialState);
+            text?.Init(optInitialState, optPostConfirmState, stringBufferCapacity);
+            background?.Init(optInitialState, optPostConfirmState);
+            foreground?.Init(optInitialState, optPostConfirmState);
             // need to set this at least once for the components to be overrwritten if the default style is assigned.
-            this.parentOverrideStyle = null;
         }
 
         public void ChangeState(InteractiveState? istate){

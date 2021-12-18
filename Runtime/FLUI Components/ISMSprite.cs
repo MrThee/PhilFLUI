@@ -21,7 +21,7 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
     public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;
 
-    public void Init(InteractiveState? optInitialState){
+    public void Init(InteractiveState? optInitialState, InteractiveState? postConfirmedState){
         ChangeState(optInitialState);
     }
 
@@ -36,6 +36,7 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
 
     void FixedUpdate(){
         m_ism.UpdateState(Time.fixedDeltaTime, style, this);
+        Reapply();
     }
 
     void Reapply(){
@@ -51,7 +52,7 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
         }
         style.BlendedApplyAll( m_ism, 
             FLUITransformable.Same(localTransformable),
-            this.colorable,  spriteable
+            this.colorable, spriteable
         );
     }
 }

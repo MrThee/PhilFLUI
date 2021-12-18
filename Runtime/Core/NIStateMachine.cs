@@ -15,12 +15,23 @@ public struct NIStateMachine {
     }
 
     public float priorStateTimer;
-    public NonInteractiveState? priorState;
+    public NonInteractiveState? priorState {
+        get => m_priorStateValid ? m_priorState : (NonInteractiveState?)null;
+        set {
+            m_priorStateValid = value.HasValue;
+            if(value.HasValue){
+                m_priorState = value.Value;
+            }
+        }
+    }
+    private bool m_priorStateValid;
+    private NonInteractiveState m_priorState;
     public float currentStateTimer;
     public NonInteractiveState? currentState;
 
     public NIStateMachine(NonInteractiveState? initialState){
-        this.priorState = initialState;
+        this.m_priorStateValid = initialState.HasValue;
+        this.m_priorState = NonInteractiveState.Rollout;
         this.currentState = initialState;
         this.priorStateTimer = 0f;
         this.currentStateTimer = 0f;

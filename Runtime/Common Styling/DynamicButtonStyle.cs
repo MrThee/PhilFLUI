@@ -16,6 +16,12 @@ public class DynamicButtonStyle : ScriptableObject, IDynamicButtonStyle {
     public InteractiveDynamicSpriteStyle.Inline iForegroundBehaviour => data.iForegroundBehaviour;
     public InteractiveDynamicTextStyle.Inline iTextBehaviour => data.iTextBehaviour;
 
+    void OnValidate(){
+        data.backgroundBehaviour.idle.rectBehaviour.EnsureWraps();
+        data.foregroundBehaviour.idle.rectBehaviour.EnsureWraps();
+        data.textBehaviour.idle.TRS.EnsureWraps();
+    }
+
     [System.Serializable]
     public class Inline : IDynamicButtonStyle {
         [InlineCorral] public InteractiveDynamicSpriteStyle.Inline backgroundBehaviour = new InteractiveDynamicSpriteStyle.Inline();

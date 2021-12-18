@@ -38,6 +38,10 @@ public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod, IDynamicSpri
         data.BlendedApplyAll(nism, transformThis, colorThis, spriteThis);
     }
 
+    void OnValidate(){
+        idle.rectBehaviour.EnsureWraps();
+    }
+
     [System.Serializable]
     public class Inline : INIStatePeriod, IDynamicSpriteStyle {
         [InlineCorral] public FLUISpriteBehaviour rollout = new FLUISpriteBehaviour();

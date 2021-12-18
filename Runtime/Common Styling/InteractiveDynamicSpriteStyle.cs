@@ -41,14 +41,18 @@ public class InteractiveDynamicSpriteStyle : ScriptableObject, IInteractiveState
         data.BlendedApplyAll(ism, ft, fc, fs);
     }
 
+    void OnValidate(){
+        idle.rectBehaviour.EnsureWraps();
+    }
+
     [System.Serializable]
     public class Inline : IInteractiveStatePeriod, IInteractiveDynamicSpriteStyle {
+        public float stateBlendPeriod = 0.3f;
         [InlineCorral] public FLUISpriteBehaviour rollout = new FLUISpriteBehaviour();
         [InlineCorral] public FLUISpriteBehaviour idle = new FLUISpriteBehaviour();
         [InlineCorral] public FLUISpriteBehaviour recede = new FLUISpriteBehaviour();
         [InlineCorral] public FLUISpriteBehaviour highlighted = new FLUISpriteBehaviour();
         [InlineCorral] public FLUISpriteBehaviour confirmed = new FLUISpriteBehaviour();
-        public float stateBlendPeriod = 0.3f;
 
         public float GetStatePeriod(InteractiveState state){
             return GetBehaviour(state).period;

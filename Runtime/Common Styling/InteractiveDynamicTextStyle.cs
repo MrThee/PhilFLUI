@@ -52,14 +52,18 @@ public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveDynamic
         return c;
     }
 
+    void OnValidate(){
+        idle.TRS.EnsureWraps();
+    }
+
     [System.Serializable]
     public class Inline : IInteractiveDynamicCharStyle {
+        public float crossfadePeriod = 0.3f;
         public FLUICharBehaviour rollout = new FLUICharBehaviour();
         public FLUICharBehaviour idle = new FLUICharBehaviour();
         public FLUICharBehaviour recede = new FLUICharBehaviour();
         public FLUICharBehaviour highlighted = new FLUICharBehaviour();
         public FLUICharBehaviour confirmed = new FLUICharBehaviour();
-        public float crossfadePeriod = 0.3f;
 
         public float GetCrossfadePeriod() { return crossfadePeriod; }
 

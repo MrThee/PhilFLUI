@@ -19,10 +19,10 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     public NonInteractiveState? currentState => m_nism.currentState;
     private NIStateMachine m_nism;
     private PerCharOps<Vector3> m_pco;
-    private System.Text.StringBuilder m_strbuf;
+    // private System.Text.StringBuilder m_strbuf;
 
     public void Init(NonInteractiveState? optInitialState, int strBufCapacity){
-        this.m_strbuf = new System.Text.StringBuilder(strBufCapacity);
+        // this.m_strbuf = new System.Text.StringBuilder(strBufCapacity);
         // TODO: migrate first arg to the style
         this.m_pco = PerCharOps.Positions(true, strBufCapacity, CalcGlyphPosition);
         ChangeState(optInitialState);

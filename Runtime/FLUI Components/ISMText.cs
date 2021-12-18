@@ -14,20 +14,18 @@ public class ISMText : MonoBehaviour, InteractiveStateMachine.IChangeStateCallba
     [Header("Default Config")]
     public InteractiveDynamicTextStyle defaultStyle;
     public IInteractiveDynamicCharStyle overrideStyle;
-    public IInteractiveDynamicCharStyle style => overrideStyle ?? style;
+    public IInteractiveDynamicCharStyle style => overrideStyle ?? defaultStyle;
 
     public InteractiveState? currentState => m_ism.currentState;
     private InteractiveStateMachine m_ism;
     private PerCharOps<Vector3> m_pco;
-    private System.Text.StringBuilder m_strbuf;
 
-    public void Init(InteractiveState? optInitialState, int strBufCapacity){
-        this.m_strbuf = new System.Text.StringBuilder(strBufCapacity);
+    public void Init(InteractiveState? optInitialState, InteractiveState? postConfirmedState, int strBufCapacity){
         // TODO: migrate first arg to the style
         this.m_pco = PerCharOps.Positions(true, strBufCapacity, CalcGlyphPosition);
-        ChangeState(optInitialState);
-
         Canvas.willRenderCanvases += this.TextUpdate;
+
+        ChangeState(optInitialState);
     }
 
     void OnDestroy(){

@@ -16,6 +16,19 @@ public class TRS2D {
     public AmplitudeCurve yScale = AmplitudeCurve.Constant(1f);
     public ScaleRectMode scaleMode = ScaleRectMode.AsScale;
 
+    public void EnsureWraps(){
+        xPos.normCurve.postWrapMode = WrapMode.Loop;
+        xPos.normCurve.preWrapMode = WrapMode.Loop;
+        yPos.normCurve.postWrapMode = WrapMode.Loop;
+        yPos.normCurve.preWrapMode = WrapMode.Loop;
+        zRot.normCurve.postWrapMode = WrapMode.Loop;
+        zRot.normCurve.preWrapMode = WrapMode.Loop;
+        xScale.normCurve.postWrapMode = WrapMode.Loop;
+        xScale.normCurve.preWrapMode = WrapMode.Loop;
+        yScale.normCurve.postWrapMode = WrapMode.Loop;
+        yScale.normCurve.preWrapMode = WrapMode.Loop;
+    }
+
     public enum ScaleRectMode {
         AsScale,
         AsSize
