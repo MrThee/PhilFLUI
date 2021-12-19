@@ -22,6 +22,7 @@ public class ISMSprite : MonoBehaviour, InteractiveStateMachine.IChangeStateCall
     private InteractiveStateMachine m_ism;
 
     public void Init(InteractiveState? optInitialState, InteractiveState? postConfirmedState){
+        m_ism = new InteractiveStateMachine(optInitialState, postConfirmedState);
         ChangeState(optInitialState);
     }
 

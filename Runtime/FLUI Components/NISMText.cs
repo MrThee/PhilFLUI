@@ -23,7 +23,7 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
 
     public void Init(NonInteractiveState? optInitialState, int strBufCapacity){
         // this.m_strbuf = new System.Text.StringBuilder(strBufCapacity);
-        // TODO: migrate first arg to the style
+        m_nism = new NIStateMachine(optInitialState);
         this.m_pco = PerCharOps.Positions(true, strBufCapacity, CalcGlyphPosition);
         ChangeState(optInitialState);
 

@@ -19,6 +19,7 @@ public class NISMSprite : MonoBehaviour, NIStateMachine.IChangeStateCallback {
     private NIStateMachine m_nism;
 
     public void Init(NonInteractiveState? optInitialState){
+        m_nism = new NIStateMachine(optInitialState);
         ChangeState(optInitialState);
     }
 

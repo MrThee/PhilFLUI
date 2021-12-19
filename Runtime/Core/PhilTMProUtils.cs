@@ -57,6 +57,20 @@ public static class TMProUtils {
         sizeDelta = new Vector2(bounds.size.x, bounds.size.y);
     }
 
+    public static int CountVisibleGlyphs(this TMPro.TextMeshProUGUI source){
+        TMPro.TMP_TextInfo textInfo = source.textInfo;
+        TMPro.TMP_CharacterInfo[] charInfomation = textInfo.characterInfo;
+        int charCount = textInfo.characterCount;
+        int count = 0;
+        for(int c = 0; c < charCount; c++){
+            TMPro.TMP_CharacterInfo charInfo = charInfomation[c];
+            if(charInfo.isVisible){
+                count++;
+            }
+        }
+        return count;
+    }
+
     public static void GetBaseAttributes<T>(
         TMPro.TextMeshProUGUI textField,
         System.Func<TMPro.TextMeshProUGUI, int, T[]> GetSrcBuf,

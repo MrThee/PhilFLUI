@@ -28,6 +28,7 @@ public struct NIStateMachine {
     private NonInteractiveState m_priorState;
     public float currentStateTimer;
     public NonInteractiveState? currentState;
+    // TODO: make this serialized
 
     public NIStateMachine(NonInteractiveState? initialState){
         this.m_priorStateValid = initialState.HasValue;

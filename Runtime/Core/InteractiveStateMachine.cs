@@ -23,17 +23,28 @@ public struct InteractiveStateMachine {
             }
         }
     }
+    public float currentStateTimer;
+    public InteractiveState? currentState {
+        get => m_currentStateValid ? m_currentState : (InteractiveState?)null;
+        set {
+            m_currentStateValid = value.HasValue;
+            if(value.HasValue){
+                m_currentState = value.Value;
+            }
+        }
+    }
+    private bool m_currentStateValid;
+    private InteractiveState m_currentState;
     private bool m_priorStateValid;
     private InteractiveState m_priorState;
-    public float currentStateTimer;
-    public InteractiveState? currentState;
     public readonly InteractiveState? postConfirmedState;
 
     public InteractiveStateMachine(InteractiveState? initialState, InteractiveState? postConfirmedState){
         this.m_priorStateValid = initialState.HasValue;
-        this.m_priorState = InteractiveState.Rollout;
+        this.m_priorState = initialState.HasValue ? initialState.Value : InteractiveState.Rollout;
         this.priorStateTimer = 0f;
-        this.currentState = initialState;
+        this.m_currentStateValid = initialState.HasValue;
+        this.m_currentState = initialState.HasValue ? initialState.Value : InteractiveState.Rollout;
         this.currentStateTimer = 0f;
         this.postConfirmedState = postConfirmedState;
     }
