@@ -27,9 +27,9 @@ public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveDynamic
     }
 
     public Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism,
-            Vector3 quadPoint, int charIndex
+            Vector3 quadPoint, GlyphInfo glyphInfo
     ) {
-        return data.CalcBlendedTransformLocalPoint(ism, quadPoint, charIndex);
+        return data.CalcBlendedTransformLocalPoint(ism, quadPoint, glyphInfo);
     }
 
     public Color CalcWordBlendedColor(InteractiveStateMachine iTextStateMachine){
@@ -80,23 +80,23 @@ public class InteractiveDynamicTextStyle : ScriptableObject, IInteractiveDynamic
             }
         }
 
-        public Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism, Vector3 quadPoint, int charIndex){
+        public Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism, Vector3 quadPoint, GlyphInfo glyphInfo){
             if(ism.currentState.HasValue == false){
                 return Vector3.zero;
             }
             var curState = ism.currentState.Value;
             var priorState = ism.priorState ?? curState;
-            return CalcBlendedTransformLocalPoint(this, ism.priorStateTimer, priorState, ism.currentStateTimer, curState, quadPoint, charIndex);
+            return CalcBlendedTransformLocalPoint(this, ism.priorStateTimer, priorState, ism.currentStateTimer, curState, quadPoint, glyphInfo);
         }
 
         public static Vector3 CalcBlendedTransformLocalPoint(IInteractiveDynamicCharStyle style, float priorStateTimer, InteractiveState priorState, float newStateTimer, InteractiveState newState,
-            Vector3 quadPoint, int charIndex
+            Vector3 quadPoint, GlyphInfo glyphInfo
         ) {
             var aState = style.GetBehaviour(priorState);
             var bState = style.GetBehaviour(newState);
             float t = (style.GetCrossfadePeriod() == 0f) ? 1f : newStateTimer / style.GetCrossfadePeriod();
-            Vector3 aPoint = aState.TransformLocalPoint(quadPoint, charIndex, priorStateTimer);
-            Vector3 bPoint = bState.TransformLocalPoint(quadPoint, charIndex, newStateTimer);
+            Vector3 aPoint = aState.TransformLocalPoint(quadPoint, glyphInfo, priorStateTimer);
+            Vector3 bPoint = bState.TransformLocalPoint(quadPoint, glyphInfo, newStateTimer);
             return Vector3.Lerp(aPoint, bPoint, t);
         }
 

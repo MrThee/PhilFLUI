@@ -33,7 +33,7 @@ public class ISMText : MonoBehaviour, InteractiveStateMachine.IChangeStateCallba
     }
 
     // TODO: implement this
-    Vector3 CalcGlyphPosition(Vector3 quadPoint, int gi){
+    Vector3 CalcGlyphPosition(Vector3 quadPoint, GlyphInfo gi){
         return style.CalcBlendedTransformLocalPoint(m_ism, quadPoint, gi);
     }
 

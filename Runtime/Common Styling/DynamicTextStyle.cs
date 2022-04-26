@@ -6,7 +6,7 @@ using Phil.Attributes;
 
 namespace Phil.FLUI {
 
-[CreateAssetMenu(menuName = "UI Styles/Dynamic Text/Non Interactive", order = 0, fileName = "Dynamic Text Style")]
+[CreateAssetMenu(menuName = "Phil FLUI/UI Styles/Dynamic Text/Non Interactive", order = 0, fileName = "Dynamic Text Style")]
 public class DynamicTextStyle : ScriptableObject, IDynamicCharStyle {
 
     [InlineCorral] public Inline data = new Inline();
@@ -28,14 +28,14 @@ public class DynamicTextStyle : ScriptableObject, IDynamicCharStyle {
         return Inline.CalcWordBlendedColor(this, dTextState);
     }
 
-    public Vector3 CalcBlendedTransformLocalPoint(NIStateMachine dTextState, Vector3 quadPoint, int charIndex){
-        return data.CalcBlendedTransformLocalPoint(dTextState, quadPoint, charIndex);
+    public Vector3 CalcBlendedTransformLocalPoint(NIStateMachine dTextState, Vector3 quadPoint, GlyphInfo glyphInfo){
+        return data.CalcBlendedTransformLocalPoint(dTextState, quadPoint, glyphInfo);
     }
 
     public Vector3 CalcBlendedTransformLocalPoint(float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
-        Vector3 quadPoint, int charIndex
+        Vector3 quadPoint, GlyphInfo glyphInfo
     ) {
-        return Inline.CalcBlendedTransformLocalPoint(this, priorStateTimer, priorState, newStateTimer, newState, quadPoint, charIndex);
+        return Inline.CalcBlendedTransformLocalPoint(this, priorStateTimer, priorState, newStateTimer, newState, quadPoint, glyphInfo);
     }
 
     void OnValidate(){
@@ -78,32 +78,32 @@ public class DynamicTextStyle : ScriptableObject, IDynamicCharStyle {
             float t = (crossfadePeriod == 0f) ? 1f : dTextState.currentStateTimer / crossfadePeriod;
             var aBehave = style.GetBehaviour(curState);
             var bBehave = style.GetBehaviour(priorState);
-            Color aColor = aBehave.wordGradient.Evaluate(dTextState.priorStateTimer/aBehave.wordColorPeriod);
-            Color bColor = bBehave.wordGradient.Evaluate(dTextState.currentStateTimer/bBehave.wordColorPeriod);
+            Color aColor = aBehave.CalcWordColor(dTextState.priorStateTimer);
+            Color bColor = bBehave.CalcWordColor(dTextState.currentStateTimer);
             Color c = Color.Lerp(aColor, bColor, t);
             return c;
         }
 
-        public Vector3 CalcBlendedTransformLocalPoint(NIStateMachine dTextState, Vector3 quadPoint, int charIndex){
+        public Vector3 CalcBlendedTransformLocalPoint(NIStateMachine dTextState, Vector3 quadPoint, GlyphInfo glyphInfo){
             if(dTextState.currentState.HasValue==false){
                 return Vector3.zero;
             }
             var oldState = dTextState.priorState ?? dTextState.currentState.Value;
             return CalcBlendedTransformLocalPoint( this,
                 dTextState.priorStateTimer, oldState, dTextState.currentStateTimer, dTextState.currentState.Value,
-                quadPoint, charIndex
+                quadPoint, glyphInfo
             );
         }
 
         public static Vector3 CalcBlendedTransformLocalPoint(IDynamicCharStyle style, float priorStateTimer, NonInteractiveState priorState, float newStateTimer, NonInteractiveState newState,
-            Vector3 quadPoint, int charIndex
+            Vector3 quadPoint, GlyphInfo glyphInfo
         ) {
             var aState = style.GetBehaviour(priorState);
             var bState = style.GetBehaviour(newState);
             float crossfadePeriod = style.GetCrossfadePeriod();
             float t = (crossfadePeriod == 0f) ? 1f : newStateTimer / crossfadePeriod;
-            Vector3 aPoint = aState.TransformLocalPoint(quadPoint, charIndex, priorStateTimer);
-            Vector3 bPoint = bState.TransformLocalPoint(quadPoint, charIndex, newStateTimer);
+            Vector3 aPoint = aState.TransformLocalPoint(quadPoint, glyphInfo, priorStateTimer);
+            Vector3 bPoint = bState.TransformLocalPoint(quadPoint, glyphInfo, newStateTimer);
             return Vector3.Lerp(aPoint, bPoint, t);
         }
     }

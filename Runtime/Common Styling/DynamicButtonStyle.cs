@@ -7,7 +7,7 @@ using Phil.Attributes;
 
 namespace Phil.FLUI {
 
-[CreateAssetMenu(menuName = "UI Styles/Dynamic Button", order = 2, fileName = "Dynamic Button Style")]
+[CreateAssetMenu(menuName = "Phil FLUI/UI Styles/Dynamic Button", order = 2, fileName = "Dynamic Button Style")]
 public class DynamicButtonStyle : ScriptableObject, IDynamicButtonStyle {
 
     [InlineCorral] public Inline data = new Inline();

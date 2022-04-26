@@ -21,14 +21,14 @@ public interface IInteractiveDynamicSpriteStyle : IInteractiveStatePeriod {
 public interface IDynamicCharStyle : INIStatePeriod {
     FLUICharBehaviour GetBehaviour(NonInteractiveState nistate);
     float GetCrossfadePeriod();
-    Vector3 CalcBlendedTransformLocalPoint(NIStateMachine nism, Vector3 quadPoint, int gi);
+    Vector3 CalcBlendedTransformLocalPoint(NIStateMachine nism, Vector3 quadPoint, GlyphInfo gi);
     Color CalcWordBlendedColor(NIStateMachine nism);
 }
 
 public interface IInteractiveDynamicCharStyle : IInteractiveStatePeriod {
     FLUICharBehaviour GetBehaviour(InteractiveState nistate);
     float GetCrossfadePeriod();
-    Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism, Vector3 quadPoint, int gi);
+    Vector3 CalcBlendedTransformLocalPoint(InteractiveStateMachine ism, Vector3 quadPoint, GlyphInfo gi);
     Color CalcWordBlendedColor(InteractiveStateMachine nism);
 }
 

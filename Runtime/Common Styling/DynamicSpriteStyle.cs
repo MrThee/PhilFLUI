@@ -7,7 +7,7 @@ using Phil.Attributes;
 
 namespace Phil.FLUI {
 
-[CreateAssetMenu(menuName = "UI Styles/Dynamic Sprite/Non Interactive", order = 0, fileName = "Dynamic Sprite Style")]
+[CreateAssetMenu(menuName = "Phil FLUI/UI Styles/Dynamic Sprite/Non Interactive", order = 0, fileName = "Dynamic Sprite Style")]
 public class DynamicSpriteStyle : ScriptableObject, INIStatePeriod, IDynamicSpriteStyle {
     [InlineCorral] public Inline data = new Inline();
 

@@ -20,7 +20,7 @@ public static class TMProUtils {
         S_UpdateColors = tf => tf.UpdateVertexData(TMPro.TMP_VertexDataUpdateFlags.Colors32);
     }
 
-    public static void GetPositions(TMPro.TextMeshProUGUI textField, List<Vector3> dstBuf){
+    public static void GetPositions(TMPro.TextMeshProUGUI textField, List<(Vector3,Phil.FLUI.GlyphInfo)> dstBuf){
         GetBaseAttributes(textField, S_GetVertArr, dstBuf);
     }
 
@@ -28,7 +28,7 @@ public static class TMProUtils {
         SetAttributes(textField, srcBuf, S_GetVertArr, S_UpdateVerts);
     }
 
-    public static void GetColors(TMPro.TextMeshProUGUI textField, List<Color> dstBuf){
+    public static void GetColors(TMPro.TextMeshProUGUI textField, List<(Color,Phil.FLUI.GlyphInfo)> dstBuf){
         GetBaseAttributes<Color,Color32>(textField, S_GetC32Arr,
             dstBuf, c32 => { Color c= c32; return c; }
         );
@@ -74,7 +74,7 @@ public static class TMProUtils {
     public static void GetBaseAttributes<T>(
         TMPro.TextMeshProUGUI textField,
         System.Func<TMPro.TextMeshProUGUI, int, T[]> GetSrcBuf,
-        List<T> dstBuf
+        List<(T,Phil.FLUI.GlyphInfo)> dstBuf
     ) {
         TMPro.TMP_TextInfo textInfo = textField.textInfo;
         TMPro.TMP_CharacterInfo[] charInfomation = textInfo.characterInfo;
@@ -89,18 +89,18 @@ public static class TMProUtils {
             int matIndex = charInfo.materialReferenceIndex;
             T[] src = GetSrcBuf(textField, matIndex);
             int startIndex = charInfo.vertexIndex;
-
-            dstBuf.Add(src[startIndex+0]);
-            dstBuf.Add(src[startIndex+1]);
-            dstBuf.Add(src[startIndex+2]);
-            dstBuf.Add(src[startIndex+3]);
+            var gi = new Phil.FLUI.GlyphInfo(ref textInfo, ref charInfo, c);
+            dstBuf.Add( (src[startIndex+0], gi) );
+            dstBuf.Add( (src[startIndex+1], gi) );
+            dstBuf.Add( (src[startIndex+2], gi) );
+            dstBuf.Add( (src[startIndex+3], gi) );
         }
     }
 
     public static void GetBaseAttributes<T,N>(
         TMPro.TextMeshProUGUI textField,
         System.Func<TMPro.TextMeshProUGUI, int, N[]> GetSrcBuf,
-        List<T> dstBuf,
+        List<(T,Phil.FLUI.GlyphInfo)> dstBuf,
         System.Func<N,T> Caster
     ) {
         TMPro.TMP_TextInfo textInfo = textField.textInfo;
@@ -117,10 +117,10 @@ public static class TMProUtils {
             N[] src = GetSrcBuf(textField, matIndex);
             int startIndex = charInfo.vertexIndex;
 
-            dstBuf.Add( Caster(src[startIndex+0]) );
-            dstBuf.Add( Caster(src[startIndex+1]) );
-            dstBuf.Add( Caster(src[startIndex+2]) );
-            dstBuf.Add( Caster(src[startIndex+3]) );
+            dstBuf.Add( ( Caster(src[startIndex+0]), new Phil.FLUI.GlyphInfo(ref textInfo, ref charInfo, c)) );
+            dstBuf.Add( ( Caster(src[startIndex+1]), new Phil.FLUI.GlyphInfo(ref textInfo, ref charInfo, c)) );
+            dstBuf.Add( ( Caster(src[startIndex+2]), new Phil.FLUI.GlyphInfo(ref textInfo, ref charInfo, c)) );
+            dstBuf.Add( ( Caster(src[startIndex+3]), new Phil.FLUI.GlyphInfo(ref textInfo, ref charInfo, c)) );
         }
     }
 

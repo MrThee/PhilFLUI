@@ -1,6 +1,6 @@
 {
   "name": "com.mrthee.philflui",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "displayName": "Phil FLUI",
   "description": "Fancy Animated UI Boilerplate Utils, Tools, and Core code!",
   "unity": "2019.4",
@@ -9,7 +9,7 @@
   "changelogUrl": "https://example.com/changelog.html",
   "licensesUrl": "https://example.com/licensing.html",
   "dependencies": {
-    "com.mrthee.philsrc": "0.0.4",
+    "com.mrthee.philsrc": "0.0.6",
     "com.unity.textmeshpro": "2.0.0"
   },
   "keywords": [

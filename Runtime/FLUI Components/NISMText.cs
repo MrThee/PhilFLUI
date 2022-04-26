@@ -34,7 +34,7 @@ public class NISMText : MonoBehaviour, NIStateMachine.IChangeStateCallback {
         Canvas.willRenderCanvases -= this.TextUpdate;
     }
 
-    Vector3 CalcGlyphPosition(Vector3 quadPoint, int gi){
+    Vector3 CalcGlyphPosition(Vector3 quadPoint, GlyphInfo gi){
         return style.CalcBlendedTransformLocalPoint(m_nism, quadPoint, gi);
     }
 

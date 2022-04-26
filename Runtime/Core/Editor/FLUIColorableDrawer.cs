@@ -3,6 +3,8 @@ using UnityEngine;
 
 using Phil.Core;
 
+#if UNITY_EDITOR
+
 namespace Phil.FLUI {
 
 [CustomPropertyDrawer(typeof(FLUIColorable))]
@@ -16,3 +18,5 @@ public class FLUIColorableDrawer : PolyObjectDrawer<FLUIColorable, FLUIColorable
 }
 
 }
+
+#endif

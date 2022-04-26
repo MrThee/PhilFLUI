@@ -14,31 +14,33 @@ namespace Phil.FLUI {
     public struct PerCharOps<A> {
 
         // By default
-        public readonly AspectBuffer< Func<A,int, A> > CharTransform;
+        public readonly AspectBuffer< Func<A,GlyphInfo, A> > CharTransform;
         readonly Func<A,A,A> w_AddOp;
         readonly Func<A,A,A> w_SubOp;
         readonly Func<A,float,A> w_MultOp;
         bool inLocalSpace => (w_AddOp != null);
 
-        readonly List<A> m_baseAttr;
+        readonly List<(A attr, GlyphInfo glyphInfo)> m_baseAttr;
         readonly List<A> m_transformedAttr;
 
         public int currentGlyphCount => m_transformedAttr.Count / 4;
 
         // The transform can change, but the aspect buffer stays
-        readonly Action< TMPro.TextMeshProUGUI, List<A> > w_GetAttributes;
+        readonly Action< TMPro.TextMeshProUGUI, List<(A, GlyphInfo)> > w_GetAttributes;
         readonly Action< TMPro.TextMeshProUGUI, IReadOnlyList<A> > w_SetAttributes;
 
         public PerCharOps( Func<A,A,A> Add, Func<A,A,A> Sub, Func<A,float,A> Mult,
-            Action< TMPro.TextMeshProUGUI, List<A> > GetAttr,
-            Action< TMPro.TextMeshProUGUI, IReadOnlyList<A> > SetAttr, int initCharBufCapacity
+            Action< TMPro.TextMeshProUGUI, List<(A, GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<A> > SetAttr, 
+            Func< A, GlyphInfo, A > NoopAttr,
+            int initCharBufCapacity
         ) {
             this.w_AddOp = Add;
             this.w_SubOp = Sub;
             this.w_MultOp = Mult;
-            this.m_baseAttr = new List<A>(initCharBufCapacity*4);
+            this.m_baseAttr = new List<(A, GlyphInfo)>(initCharBufCapacity*4);
             this.m_transformedAttr = new List<A>(initCharBufCapacity*4);
-            this.CharTransform = new AspectBuffer<Func<A, int, A>>( (a, ci) => a ); // Should this be cached?
+            this.CharTransform = new AspectBuffer<Func<A, GlyphInfo, A>>( NoopAttr ); // Should this be cached?
             this.w_GetAttributes = GetAttr;
             this.w_SetAttributes = SetAttr;
         }
@@ -76,12 +78,12 @@ namespace Phil.FLUI {
             for(int i = 0; i < baseAttrCount; i++){
                 int ci = i / 4;
                 int fi = ci*4;
-                A wordSpaceAttr = m_baseAttr[i];
+                A wordSpaceAttr = m_baseAttr[i].attr;
                 var a = m_baseAttr[fi];     var b = m_baseAttr[fi+1]; 
                 var c = m_baseAttr[fi+2];   var d = m_baseAttr[fi+3];
-                A attr = local ? CalcLocalPosition(a,b,c,d, wordSpaceAttr) : wordSpaceAttr;
-                A transformedAttr = CharTransform.Get()(attr, ci);
-                A newCharAttrValue = local ? w_AddOp(CalcAvgPosition(a,b,c,d), transformedAttr) : transformedAttr;
+                A attr = local ? CalcLocalPosition(a.attr,b.attr,c.attr,d.attr, wordSpaceAttr) : wordSpaceAttr;
+                A transformedAttr = CharTransform.Get()(attr, a.glyphInfo);
+                A newCharAttrValue = local ? w_AddOp(CalcAvgPosition(a.attr,b.attr,c.attr,d.attr), transformedAttr) : transformedAttr;
                 m_transformedAttr.Add(newCharAttrValue);
             }
             w_SetAttributes(component, m_transformedAttr);
@@ -91,17 +93,21 @@ namespace Phil.FLUI {
         // Shorthands
 
         public static PerCharOps<B> LocalSpace<B>(  Func<B,B,B> Add, Func<B,B,B> Sub, Func<B,float,B> Mult,
-            Action< TMPro.TextMeshProUGUI, List<B> > GetAttr,
-            Action< TMPro.TextMeshProUGUI, IReadOnlyList<B> > SetAttr, int initCharBufCapacity )
+            Action< TMPro.TextMeshProUGUI, List<(B,GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<B> > SetAttr, 
+            Func< B, GlyphInfo, B> NoopAttr,
+            int initCharBufCapacity )
         {
-            return new PerCharOps<B>(Add, Sub, Mult, GetAttr, SetAttr, initCharBufCapacity);
+            return new PerCharOps<B>(Add, Sub, Mult, GetAttr, SetAttr, NoopAttr, initCharBufCapacity);
         }
 
         public static PerCharOps<B> WordSpace<B>(
-            Action< TMPro.TextMeshProUGUI, List<B> > GetAttr,
-            Action< TMPro.TextMeshProUGUI, IReadOnlyList<B> > SetAttr, int initCharBufCapacity
+            Action< TMPro.TextMeshProUGUI, List<(B,GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<B> > SetAttr, 
+            Func< B, GlyphInfo, B> NoopAttr,
+            int initCharBufCapacity
         ) {
-            return new PerCharOps<B>(null, null, null, GetAttr, SetAttr, initCharBufCapacity);
+            return new PerCharOps<B>(null, null, null, GetAttr, SetAttr, NoopAttr, initCharBufCapacity);
         }
     }
 
@@ -113,70 +119,67 @@ namespace Phil.FLUI {
         }
 
         public static PerCharOps<float> Float( bool charLocalSpace,
-            Action< TMPro.TextMeshProUGUI, List<float> > GetAttr,
-                Action< TMPro.TextMeshProUGUI, IReadOnlyList<float> > SetAttr, int initCharBufCapacity
+            Action< TMPro.TextMeshProUGUI, List<(float,GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<float> > SetAttr, 
+            Func< float, GlyphInfo, float > NoopAttr,
+            int initCharBufCapacity
         ) {
             if(charLocalSpace){
                 return PerCharOps<float>.LocalSpace( (a,b) => a+b, (a,b) => a-b, (a,f) => a*f,
-                GetAttr, SetAttr, initCharBufCapacity );
+                GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             } else {
-                return PerCharOps<float>.WordSpace( GetAttr, SetAttr, initCharBufCapacity );
+                return PerCharOps<float>.WordSpace( GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             }
         }
 
         public static PerCharOps<Vector2> V2( bool charLocalSpace,
-            Action< TMPro.TextMeshProUGUI, List<Vector2> > GetAttr,
-                Action< TMPro.TextMeshProUGUI, IReadOnlyList<Vector2> > SetAttr, int initCharBufCapacity
+            Action< TMPro.TextMeshProUGUI, List<(Vector2,GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<Vector2> > SetAttr, 
+            Func< Vector2, GlyphInfo, Vector2> NoopAttr,
+            int initCharBufCapacity
         ) {
             if(charLocalSpace){
                 return PerCharOps<Vector2>.LocalSpace( (a,b) => a+b, (a,b) => a-b, (a,f) => a*f,
-                GetAttr, SetAttr, initCharBufCapacity );
+                GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             } else {
-                return PerCharOps<Vector2>.WordSpace( GetAttr, SetAttr, initCharBufCapacity );
+                return PerCharOps<Vector2>.WordSpace( GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             }
         }
 
         // TODO: make this private
+        private static readonly Func< Vector3, GlyphInfo, Vector3> NoopV3 = (V3, gi) => V3;
+
         public static PerCharOps<Vector3> V3( bool charLocalSpace,
-            Action< TMPro.TextMeshProUGUI, List<Vector3> > GetAttr,
-                Action< TMPro.TextMeshProUGUI, IReadOnlyList<Vector3> > SetAttr, int initCharBufCapacity
+            Action< TMPro.TextMeshProUGUI, List<(Vector3,GlyphInfo)> > GetAttr,
+            Action< TMPro.TextMeshProUGUI, IReadOnlyList<Vector3> > SetAttr, 
+            Func< Vector3, GlyphInfo, Vector3> NoopAttr,
+            int initCharBufCapacity
         ) {
             if(charLocalSpace){
                 return PerCharOps<Vector3>.LocalSpace( (a,b) => a+b, (a,b) => a-b, (a,f) => a*f,
-                GetAttr, SetAttr, initCharBufCapacity );
+                GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             } else {
-                return PerCharOps<Vector3>.WordSpace( GetAttr, SetAttr, initCharBufCapacity );
+                return PerCharOps<Vector3>.WordSpace( GetAttr, SetAttr, NoopAttr, initCharBufCapacity );
             }
         }
 
+        private static readonly Func< Color, GlyphInfo, Color > NoopColor = (c, gi) => c;
+
         public static PerCharOps<Color> DefaultColor( int initCharBufCapacity
         ) {
-            return PerCharOps<Color>.WordSpace<Color>( Phil.TMProUtils.GetColors, Phil.TMProUtils.SetColors, initCharBufCapacity );
+            return PerCharOps<Color>.WordSpace<Color>( Phil.TMProUtils.GetColors, Phil.TMProUtils.SetColors, NoopColor, initCharBufCapacity );
         }
 
-        public static PerCharOps<Vector3> Positions( bool local, int initCharBufCapacity, System.Func<Vector3,int,Vector3> CalcGlyphPosition
+        public static PerCharOps<Vector3> Positions( bool local, int initCharBufCapacity, System.Func<Vector3,GlyphInfo,Vector3> CalcGlyphPosition
         ) {
-            var pco = PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, initCharBufCapacity );
+            var pco = PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, NoopV3, initCharBufCapacity );
             pco.CharTransform.Set(CalcGlyphPosition);
             return pco;
         }
         
         public static PerCharOps<Vector3> Positions( bool local, int initCharBufCapacity
         ) {
-            return PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, initCharBufCapacity );
-        }
-
-
-        // NOOPs
-        public static Vector3 Vector3_Noop (Vector3 input, int ci){
-            return input;
-        }
-        public static Func<Color, int, Color> Const (Color color){
-            return (a,b) => color;
-        }
-
-        public static Func<Vector3, int, Vector3> Const (Vector3 v3){
-            return (a,b) => v3;
+            return PerCharOps.V3( local, Phil.TMProUtils.GetPositions, Phil.TMProUtils.SetPositions, NoopV3, initCharBufCapacity );
         }
 
         static Func<T, int, T> LerpFunc<T>( 

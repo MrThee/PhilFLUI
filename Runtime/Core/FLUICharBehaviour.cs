@@ -12,14 +12,18 @@ public class FLUICharBehaviour {
     public float charPeriod = 0.25f;
     [InlineCorral] public TRS2D TRS = new TRS2D();
     
-    public Vector3 TransformLocalPoint(Vector3 quadPoint, int charIndex, float timer){
-        float charTimer = timer - charIndex * charStagger;
+    public Vector3 TransformLocalPoint(Vector3 quadPoint, GlyphInfo gi, float timer){
+        float charTimer = timer - gi.glyphIndex * charStagger;
         float t = charTimer / charPeriod;
         return TRS.TransformLocalPoint(quadPoint, t);
     }
 
     public Gradient wordGradient = new Gradient();
     public float wordColorPeriod = 1f;
+
+    public Color CalcWordColor(float stateTimer){
+        return wordGradient.Evaluate( stateTimer / wordColorPeriod );
+    }
 }
 
 }

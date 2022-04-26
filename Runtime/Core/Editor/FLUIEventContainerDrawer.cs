@@ -3,6 +3,8 @@ using UnityEngine;
 
 using Phil.Core;
 
+#if UNITY_EDITOR
+
 namespace Phil.FLUI{
 
 [CustomPropertyDrawer(typeof(FLUIEventContainer))]
@@ -19,3 +21,5 @@ public class FLUIEventContainerDrawer :
 }
 
 }
+
+#endif
